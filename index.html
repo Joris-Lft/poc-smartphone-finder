@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Questionnaire Smartphone</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <script src="https://unpkg.com/htmx.org"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Choisissez votre smartphone</h1>
+
+      <form
+        hx-post="/generate-prompt"
+        hx-trigger="submit"
+        hx-target="#prompt-result"
+        hx-swap="outerHTML"
+      >
+        <div class="form-group">
+          <label for="budget">Budget :</label>
+          <select id="budget" name="budget" required>
+            <option value="Moins de 300 €">Moins de 300 €</option>
+            <option value="Entre 300 € et 500 €">Entre 300 € et 500 €</option>
+            <option value="Entre 500 € et 800 €">Entre 500 € et 800 €</option>
+            <option value="Plus de 800 €">Plus de 800 €</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="screenSize">Taille de l'écran :</label>
+          <select id="screenSize" name="screenSize" required>
+            <option value="Petit">Petit (<5,5 pouces)</option>
+            <option value="Moyen">Moyen (entre 5,5 et 6,2 pouces)</option>
+            <option value="Grand">Grand (>6,2 pouces)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="camera">Qualité de l'appareil photo :</label>
+          <select id="camera" name="camera" required>
+            <option value="Peu important">Peu important</option>
+            <option value="Moyennement important">Moyennement important</option>
+            <option value="Très important">Très important</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="battery">Autonomie :</label>
+          <select id="battery" name="battery" required>
+            <option value="Peu important">Peu important</option>
+            <option value="Moyennement important">Moyennement important</option>
+            <option value="Très important">Très important</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="brand">Marque (facultatif) :</label>
+          <input
+            type="text"
+            id="brand"
+            name="brand"
+            placeholder="Entrez la marque"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="os">Système d'exploitation :</label>
+          <select id="os" name="os" required>
+            <option value="Android">Android</option>
+            <option value="iOS">iOS</option>
+            <option value="Peu importe">Peu importe</option>
+          </select>
+        </div>
+
+        <button type="submit">Générer le prompt</button>
+      </form>
+
+      <!-- Conteneur pour afficher le prompt généré -->
+      <div id="prompt-result"></div>
+    </div>
+
+    <script>
+      document.body.addEventListener("htmx:configRequest", (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.detail.elt);
+
+        const budget = formData.get("budget");
+        const screenSize = formData.get("screenSize");
+        const camera = formData.get("camera");
+        const battery = formData.get("battery");
+        const brand = formData.get("brand");
+        const os = formData.get("os");
+
+        let prompt = `Je cherche un smartphone avec les critères suivants : `;
+        prompt += `Budget : ${budget}, `;
+        prompt += `Taille d'écran : ${screenSize}, `;
+        prompt += `Qualité de l'appareil photo : ${camera}, `;
+        prompt += `Autonomie : ${battery}, `;
+        if (brand) {
+          prompt += `Marque : ${brand}, `;
+        }
+        prompt += `Système d'exploitation : ${os}.`;
+
+        document.getElementById("prompt-result").outerHTML = `
+      <div id="prompt-result" class="prompt-box">
+        <h3>Prompt à donner à une IA :</h3>
+        <textarea id="generated-prompt" readonly>${prompt}</textarea>
+        <button id="copy-btn">Copier le prompt</button>
+      </div>
+    `;
+
+        // Ajout de l'écouteur d'événement pour le bouton copier
+        document.getElementById("copy-btn").addEventListener("click", () => {
+          const promptText = document.getElementById("generated-prompt").value;
+          copyToClipboard(promptText);
+        });
+      });
+
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            alert("Prompt copié dans le presse-papiers !");
+          })
+          .catch((err) => {
+            console.error(
+              "Erreur lors de la copie dans le presse-papiers : ",
+              err
+            );
+            alert(
+              "Impossible de copier le prompt, veuillez copier manuellement."
+            );
+          });
+      }
+    </script>
+  </body>
+</html>
